@@ -1,16 +1,13 @@
-[phases.setup]
-nixPkgs = ["python312", "nodejs_20", "python312Packages.pip"]
+# Let Nixpacks auto-detect Python
+providers = ["python"]
 
-[phases.install]
-cmds = [
-    "python -m pip install -r requirements.txt",
-    "cd web && npm install"
-]
+[phases.setup]
+nixPkgs = ["nodejs_20"]
 
 [phases.build]
 cmds = [
-    "cd web && npm run build"
+    "cd web && npm install && npm run build"
 ]
 
 [start]
-cmd = "python -m gunicorn api.server:app --bind 0.0.0.0:$PORT"
+cmd = "gunicorn api.server:app --bind 0.0.0.0:$PORT"
