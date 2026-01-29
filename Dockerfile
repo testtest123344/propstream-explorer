@@ -27,7 +27,7 @@ COPY . .
 # Railway provides PORT env var
 EXPOSE 8080
 
-# Copy and use start script
+# Copy and use start script (sed fixes Windows line endings)
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
+RUN sed -i 's/\r$//' /start.sh && chmod +x /start.sh
 CMD ["/start.sh"]
