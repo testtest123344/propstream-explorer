@@ -28,5 +28,5 @@ COPY . .
 ENV PORT=8080
 EXPOSE 8080
 
-# Start command (shell form to expand $PORT)
-CMD gunicorn api.server:app --bind 0.0.0.0:$PORT
+# Start command with explicit shell
+CMD ["/bin/sh", "-c", "gunicorn api.server:app --bind 0.0.0.0:${PORT}"]
