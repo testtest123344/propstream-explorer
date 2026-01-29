@@ -25,8 +25,9 @@ RUN cd web && npm run build
 COPY . .
 
 # Railway provides PORT env var
-ENV PORT=8080
 EXPOSE 8080
 
-# Start command with explicit shell
-CMD ["/bin/sh", "-c", "gunicorn api.server:app --bind 0.0.0.0:${PORT}"]
+# Copy and use start script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+CMD ["/start.sh"]
