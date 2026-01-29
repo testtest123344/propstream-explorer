@@ -24,10 +24,8 @@ RUN cd web && npm run build
 # Copy the rest of the application
 COPY . .
 
-# Railway provides PORT env var
+# Expose port 8080
 EXPOSE 8080
 
-# Copy and use start script (sed fixes Windows line endings)
-COPY start.sh /start.sh
-RUN sed -i 's/\r$//' /start.sh && chmod +x /start.sh
-CMD ["/start.sh"]
+# Start gunicorn on port 8080
+CMD ["gunicorn", "api.server:app", "--bind", "0.0.0.0:8080"]
