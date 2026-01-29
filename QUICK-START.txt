@@ -1,0 +1,37 @@
+========================================
+  PropStream Explorer - Quick Start
+========================================
+
+REQUIREMENTS:
+- Windows 10/11
+- Python 3.12+ (https://python.org/downloads)
+- Node.js 20+ (https://nodejs.org)
+
+FIRST TIME SETUP:
+1. Install Python (check "Add Python to PATH" during install)
+2. Install Node.js
+3. Double-click "setup.bat" and wait for it to finish
+4. Edit "config.json" and add your PropStream auth token
+5. Double-click "run.bat" to start
+
+GETTING YOUR AUTH TOKEN:
+1. Log into PropStream in your browser
+2. Press F12 to open Developer Tools
+3. Go to Network tab
+4. Search for any property
+5. Click on a request to app.propstream.com
+6. Look in Headers for "X-Auth-Token"
+7. Copy that value into config.json
+
+RUNNING THE APP:
+- Double-click "run.bat"
+- Browser opens automatically to http://localhost:3001
+- To stop: Close the two command windows that opened
+
+TROUBLESHOOTING:
+- "Python not found": Reinstall Python, check "Add to PATH"
+- "Node not found": Reinstall Node.js
+- "Token error": Make sure you copied the full token into config.json
+- App not loading: Make sure both command windows are running
+
+========================================
