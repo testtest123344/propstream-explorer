@@ -1,0 +1,10 @@
+{
+    "auth_token": "YOUR_AUTH_TOKEN_HERE",
+    "base_url": "https://app.propstream.com",
+    "max_retries": 3,
+    "timeout": 30,
+    "min_delay": 0.5,
+    "max_delay": 3.0,
+    "hourly_limit": 100,
+    "daily_limit": 500
+}
