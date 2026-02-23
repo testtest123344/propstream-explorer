@@ -185,4 +185,4 @@ if __name__ == '__main__':
     print("  GET /api/stats                     - Request statistics")
     print("  GET /api/health                    - Health check")
     print("\nPress Ctrl+C to stop")
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=5000)
