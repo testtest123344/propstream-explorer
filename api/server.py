@@ -142,25 +142,41 @@ def lead_enriched_webhook():
     owner = data.get('owner', 'Unknown')
     address = data.get('address', '')
 
-    # Wake OpenClaw main session — agent processes the lead and delivers reply to Telegram
-    wake_text = f"[System Message] LEAD_INTEL_TRIGGER: A new lead just finished enrichment. Analyze lead_id={lead_id} filing_id={filing_id} owner={owner} address={address}. Pull full data from /api/crm/lead/{lead_id}/full-data, write your intel analysis note, post it to the lead card via the notes API, classify as URGENT/STANDARD/HOLD, and if URGENT fire the Discord webhook. Send the analysis to Justin on Telegram too."
+    # Trigger agent turn — runs in background so webhook returns immediately
+    # The agent turn pulls data, writes analysis, posts note, messages Justin
     try:
         import subprocess
-        result = subprocess.run(
-            [
-                'openclaw', 'agent',
-                '-m', wake_text,
-                '--to', '7704575065',
-                '--channel', 'telegram',
-                '--deliver',
-                '--timeout', '120',
-            ],
-            capture_output=True, text=True, timeout=130
-        )
-        if result.returncode == 0:
-            return jsonify({'status': 'ok', 'message': f'Intel analysis triggered for lead {lead_id}'})
-        else:
-            return jsonify({'status': 'error', 'message': result.stderr[:500]}), 500
+        import threading
+
+        def run_agent():
+            try:
+                subprocess.run(
+                    [
+                        'openclaw', 'agent',
+                        '-m', f'LEAD_INTEL_TRIGGER: A new lead just finished enrichment. Analyze it now.\n\n'
+                              f'lead_id={lead_id}\nfiling_id={filing_id}\nowner={owner}\naddress={address}\n\n'
+                              f'Steps:\n'
+                              f'1. Pull full data: curl with -H "X-System-Key: ccdf2555deac548ba7fd9b39b395685479cdca363462b4bfd707b9b2a06f97cf" from https://dialer-production-d020.up.railway.app/api/crm/lead/{lead_id}/full-data\n'
+                              f'2. Write a natural-language intel analysis (compare ATTOM vs PropStream, flag red flags, note loan details)\n'
+                              f'3. Post the note to the lead card: POST /api/crm/notes with same system key, json body lead_id and content\n'
+                              f'4. Classify as URGENT/STANDARD/HOLD\n'
+                              f'5. Send the analysis to Justin on Telegram using the message tool\n'
+                              f'Keep the note concise (5-10 lines). Be specific about data discrepancies.',
+                        '--to', '7704575065',
+                        '--channel', 'telegram',
+                        '--deliver',
+                        '--timeout', '300',
+                    ],
+                    capture_output=True, text=True, timeout=310
+                )
+            except Exception:
+                pass
+
+        # Fire and forget — webhook returns immediately
+        thread = threading.Thread(target=run_agent, daemon=True)
+        thread.start()
+
+        return jsonify({'status': 'ok', 'message': f'Intel analysis triggered for lead {lead_id}'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
