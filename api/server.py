@@ -129,6 +129,42 @@ def health_check():
     return jsonify({'status': 'ok'})
 
 
+@app.route('/webhook/lead-enriched', methods=['POST'])
+def lead_enriched_webhook():
+    """
+    Called by Dialer after enrichment completes.
+    Wakes OpenClaw main session to run lead intel analysis.
+    Expects JSON: {"filing_id": 123, "lead_id": 456, "address": "...", "owner": "..."}
+    """
+    data = request.get_json(silent=True) or {}
+    filing_id = data.get('filing_id', '?')
+    lead_id = data.get('lead_id', '?')
+    owner = data.get('owner', 'Unknown')
+    address = data.get('address', '')
+
+    # Wake OpenClaw main session — agent processes the lead and delivers reply to Telegram
+    wake_text = f"[System Message] LEAD_INTEL_TRIGGER: A new lead just finished enrichment. Analyze lead_id={lead_id} filing_id={filing_id} owner={owner} address={address}. Pull full data from /api/crm/lead/{lead_id}/full-data, write your intel analysis note, post it to the lead card via the notes API, classify as URGENT/STANDARD/HOLD, and if URGENT fire the Discord webhook. Send the analysis to Justin on Telegram too."
+    try:
+        import subprocess
+        result = subprocess.run(
+            [
+                'openclaw', 'agent',
+                '-m', wake_text,
+                '--to', '7704575065',
+                '--channel', 'telegram',
+                '--deliver',
+                '--timeout', '120',
+            ],
+            capture_output=True, text=True, timeout=130
+        )
+        if result.returncode == 0:
+            return jsonify({'status': 'ok', 'message': f'Intel analysis triggered for lead {lead_id}'})
+        else:
+            return jsonify({'status': 'error', 'message': result.stderr[:500]}), 500
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 # Serve React static files in production
 if IS_PRODUCTION:
     @app.route('/', defaults={'path': ''})
